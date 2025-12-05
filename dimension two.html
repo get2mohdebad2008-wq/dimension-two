@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimension II: The Synced Reality</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #330033;
+        }
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* Custom CSS for Animations */
+        @keyframes inScaleUp {
+            0% { opacity: 0; transform: scale(0.9) translateY(40px); }
+            80% { opacity: 1; transform: scale(1.01) translateY(-5px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .in-scale-up {
+            animation: inScaleUp 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes cosmicFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-3px) scale(1.01); }
+        }
+        .cosmic-float {
+            animation: cosmicFloat 5s ease-in-out infinite;
+        }
+        
+        /* Goal Item Materialization (Cascading) */
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .item-enter {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        /* Goal Completed Pulse: Shimmer from bright to muted */
+        @keyframes pulse-complete {
+            0% { opacity: 1; background-color: rgba(255, 215, 0, 0.5); }
+            50% { opacity: 1; background-color: rgba(255, 215, 0, 0.2); }
+            100% { opacity: 0.7; background-color: rgba(0, 0, 0, 0.4); }
+        }
+        .animate-pulse-complete { animation: pulse-complete 0.8s ease-out forwards; }
+
+        /* Goal Added Pulse: Shimmer from Rose to Glass */
+        @keyframes pulse-add {
+            0% { opacity: 1; background-color: rgba(201, 139, 153, 0.4); }
+            100% { opacity: 1; background-color: rgba(255, 255, 255, 0.05); }
+        }
+        .animate-pulse-add { animation: pulse-add 0.5s ease-out forwards; }
+
+        /* Anchor Button Flash */
+        @keyframes flash-anchor {
+            0% { background-color: #FFD700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); }
+            50% { background-color: #C98B99; box-shadow: 0 0 5px rgba(201, 139, 153, 0.4); }
+            100% { background-color: #FFD700; box-shadow: none; }
+        }
+        .animate-flash-anchor { animation: flash-anchor 0.4s ease-out forwards; }
+
+        /* Custom scrollbar for better aesthetics */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C98B99; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- 1. ANIMATED BACKGROUND CANVAS -->
+    <canvas id="syncedWavesCanvas" class="fixed top-0 left-0 w-full h-full z-0 pointer-events-none"></canvas>
+
+    <!-- 2. MAIN CONTENT -->
+    <div id="app" class="relative z-10 flex flex-col items-center justify-start pt-12 px-4 sm:px-8 min-h-screen">
+        <div id="main-panel" class="w-full max-w-4xl p-8 sm:p-10 rounded-3xl bg-[#330033]/70 backdrop-blur-md border border-[#FFD700]/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] text-white opacity-0 in-scale-up">
+            
+            <!-- Header -->
+            <header class="text-center mb-10">
+                <h1 id="app-title" class="text-4xl sm:text-5xl font-serif font-extrabold text-white leading-tight flex items-center justify-center drop-shadow-lg cosmic-float">
+                    <!-- Infinity Heart Icon SVG -->
+                    <svg class="w-10 h-10 mr-4 text-[#FFD700] animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364l-1.06 1.06-1.06-1.06a4.5 4.5 0 00-6.364 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 20.364L4.318 12.682a4.5 4.5 0 010-6.364" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.091V1.5" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 22.818v-2.5" />
+                    </svg>
+                    The Synced Reality
+                </h1>
+                <div class="mt-3 text-[#C98B99] font-light tracking-wide flex items-center justify-center flex-wrap gap-2">
+                    <p id="user-info">
+                        Your Synced ID: Authenticating...
+                    </p>
+                    <button id="change-name-button" class="text-sm font-medium px-3 py-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
+                        Change Name
+                    </button>
+                </div>
+            </header>
+
+            <div id="error-message"></div>
+            
+            <!-- Input Area -->
+            <form id="goal-form" class="mb-10 flex flex-col sm:flex-row gap-4">
+                <input
+                    type="text"
+                    id="new-goal-text"
+                    placeholder="Anchor a new shared goal..."
+                    class="flex-1 p-4 rounded-xl bg-white/10 text-white border border-white/20 focus:outline-none focus:border-[#FFD700] focus:ring-2 focus:ring-[#FFD700] focus:ring-offset-2 focus:ring-offset-[#330033] transition-all placeholder-gray-400 backdrop-blur-sm"
+                    onfocus="setFocusStateDebounced('input')"
+                    onblur="setFocusStateInternal(null)"
+                />
+                <button
+                    type="submit"
+                    id="anchor-button"
+                    class="bg-[#FFD700] text-[#330033] hover:bg-[#FFD700]/80 font-bold py-4 px-8 rounded-xl shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:scale-100 flex items-center justify-center"
+                    disabled
+                >
+                    <span class="mr-2 text-xl">+</span> Anchor
+                </button>
+            </form>
+
+            <!-- Partner Typing Indicator -->
+            <div id="focus-indicator" class="hidden mb-4 text-sm text-[#C98B99] items-center animate-pulse">
+                <!-- Focus Beam SVG -->
+                <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                </svg>
+                <span></span>
+            </div>
+
+            <!-- Goals List -->
+            <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                <h2 class="text-2xl font-serif text-white/90 border-b border-[#C98B99]/30 pb-2 mb-6">
+                    Our Roadmap (<span id="goal-count">0</span>)
+                </h2>
+                <div id="goals-container">
+                    <div id="loader" class="flex justify-center items-center py-6">
+                        <div class="animate-spin rounded-full h-10 w-10 border-t-4 border-[#FFD700] border-opacity-75"></div>
+                        <p class="ml-3 text-sm text-[#FFD700]">Synchronizing reality...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnostic/Security Check Section -->
+            <div class="mt-12 text-center border-t border-white/10 pt-8">
+                 <button 
+                    id="diagnostic-button"
+                    class="inline-flex items-center px-6 py-2 bg-white/5 border border-gray-500/30 hover:border-gray-500 text-gray-400 text-sm font-light rounded-full transition-all hover:bg-white/10"
+                >
+                    Run Diagnostic Check
+                </button>
+                <p class="text-xs text-gray-600 mt-2">Check console after clicking. This helps verify the authentication is functional.</p>
+            </div>
+
+
+            <!-- 3. NAVIGATION TO DIMENSION III -->
+            <div class="mt-8 text-center border-t border-white/10 pt-8">
+                <p class="text-sm text-gray-400 mb-4 italic">Ready to see what tomorrow holds?</p>
+                <a 
+                    href="dimension_3.html" 
+                    class="inline-flex items-center px-8 py-3 bg-white/5 border border-[#FFD700]/30 hover:border-[#FFD700] text-[#FFD700] font-bold rounded-full transition-all hover:bg-[#FFD700]/10 hover:shadow-[0_0_20px_rgba(255,215,0,0.3)] group"
+                >
+                    Enter Dimension III: Future Orbit
+                    <span class="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CUSTOM NAME CHANGE MODAL (Replaces native prompt() call) -->
+    <div id="name-modal" class="hidden fixed inset-0 bg-black/70 flex justify-center items-center z-50 transition-opacity duration-300">
+        <div class="bg-purple-900 border border-[#C98B99]/50 p-6 rounded-xl shadow-2xl text-white max-w-sm w-11/12 transform scale-95 transition-transform duration-300">
+            <h3 class="text-2xl font-serif mb-4 text-[#FFD700]">Enter Your Synced Name</h3>
+            <p class="text-sm text-gray-300 mb-4">This name will appear to your partner next to the goals you anchor and when you are viewing them.</p>
+            
+            <form id="name-form">
+                <input
+                    type="text"
+                    id="modal-name-input"
+                    maxlength="10"
+                    placeholder="Your Display Name (Max 10 chars)"
+                    class="w-full p-3 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:border-[#FFD700] transition-colors"
+                />
+                <div class="flex justify-end space-x-3 mt-5">
+                    <button type="button" id="cancel-name-change" class="px-4 py-2 text-gray-400 hover:text-white rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-[#FFD700] text-[#330033] font-bold rounded-lg transition-colors hover:bg-[#FFD700]/80">
+                        Confirm Name
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // --- 1. FIREBASE IMPORTS ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, setDoc, deleteDoc, doc, updateDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =====================================================================
+        // ⭐ CRITICAL LOCAL CONFIGURATION SECTION ⭐
+        // 🚨 IMPORTANT: Replace the placeholder values below with your actual 
+        // Firebase project settings from your project-609 console.
+        // =====================================================================
+        const LOCAL_FIREBASE_CONFIG = {
+             // REPLACE THIS WITH YOUR ACTUAL apiKey (long string)
+             apiKey: "AIzaSyCY57LODKQiMFjF9JzCVe0As9UIZmhpCj0", 
+             // REPLACE THIS with your actual authDomain (e.g., "project-609.firebaseapp.com")
+             authDomain: "project-6092-3a5e3.firebaseapp.com",
+             // REPLACE THIS with your actual projectId ("project-609")
+             projectId: "project-6092-3a5e3",
+             // REPLACE THIS with your actual storageBucket (e.g., "project-609.appspot.com")
+             storageBucket: "project-6092-3a5e3.firebasestorage.app",
+             messagingSenderId: "471517442064", 
+             // REPLACE THIS with your actual appId (long string starting with 1:)
+             appId: "1:471517442064:web:3a9f45b70563f2273dda95",
+        };
+        const LOCAL_AUTH_TOKEN = null; 
+        // =====================================================================
+
+        // Global State & Config (Prioritize Canvas environment variables if available)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : LOCAL_FIREBASE_CONFIG;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : LOCAL_AUTH_TOKEN;
+        
+        let db, auth;
+        let userId = null;
+        let userName = ''; 
+        let isAuthReady = false;
+        let goals = [];
+        let focusStates = {};
+        let lastAddedGoalId = null;
+        let completedGoalId = null;
+
+        // --- 2. UTILITIES & DOM ELEMENTS ---
+        const $ = (id) => document.getElementById(id);
+        const goalContainer = $('goals-container');
+        const goalCount = $('goal-count');
+        const loader = $('loader');
+        const errorDiv = $('error-message');
+        const goalForm = $('goal-form');
+        const newGoalInput = $('new-goal-text');
+        const anchorButton = $('anchor-button');
+        const focusIndicator = $('focus-indicator');
+        const focusIndicatorText = focusIndicator.querySelector('span');
+        const diagnosticButton = $('diagnostic-button');
+        const userInfoDisplay = $('user-info');
+        const changeNameButton = $('change-name-button');
+        
+        // Modal Elements
+        const nameModal = $('name-modal');
+        const modalNameInput = $('modal-name-input');
+        const nameForm = $('name-form');
+        const cancelNameChangeButton = $('cancel-name-change');
+        
+        // General Utility Functions
+        const showError = (message) => {
+            if (!errorDiv.querySelector('.auth-error')) {
+                errorDiv.innerHTML = `<div class="bg-red-900/50 text-red-200 p-4 rounded-lg mb-6 border border-red-500">${message}</div>`;
+            }
+        };
+
+        const showAuthError = (message) => {
+             errorDiv.innerHTML = `<div class="auth-error bg-red-900/50 text-red-200 p-4 rounded-lg mb-6 border border-red-500">
+                <strong>Error: Authentication failed.</strong> ${message}
+                <p class="mt-2 text-sm italic">
+                    If this error persists, please check your Firebase config (in the code) 
+                     and verify that **Anonymous Authentication** is enabled in your Firebase Console.
+                </p>
+            </div>`;
+             loader.classList.add('hidden');
+        }
+
+        const clearError = () => {
+            if (!errorDiv.querySelector('.auth-error')) {
+                errorDiv.innerHTML = '';
+            }
+        };
+        
+        /**
+         * Debounce function to limit rapid calls.
+         * @param {function} func - The function to debounce.
+         * @param {number} delay - The delay in milliseconds.
+         */
+        const debounce = (func, delay) => {
+            let timeoutId;
+            return (...args) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => func.apply(this, args), delay);
+            };
+        };
+
+        // --- User Name Handlers (Updated to use custom modal) ---
+        function getSavedName(defaultName) {
+            return localStorage.getItem('synced_reality_name') || defaultName;
+        }
+
+        function saveName(name) {
+            const trimmedName = name.trim().slice(0, 10); // Limit length
+            localStorage.setItem('synced_reality_name', trimmedName);
+            userName = trimmedName;
+            updateHeaderDisplay();
+            // CRITICAL FIX: Immediately update the focus state (to null) to propagate the new userName to the partner.
+            setFocusStateInternal(null); 
+        }
+
+        function updateHeaderDisplay() {
+            if (userId && userName) {
+                const authType = auth.currentUser.isAnonymous ? 'Anonymous' : 'Token Verified';
+                userInfoDisplay.innerHTML = `Your Synced ID: <span class="text-white font-bold">${userName}</span> (${authType})`;
+            } else {
+                 userInfoDisplay.textContent = 'Your Synced ID: Authenticating...';
+            }
+        }
+        
+        // Show the custom modal
+        function showNameModal() {
+            if (!isAuthReady) {
+                showError("Cannot change name: Authentication not ready.");
+                return;
+            }
+            modalNameInput.value = userName;
+            nameModal.classList.remove('hidden');
+            setTimeout(() => { // Add scale-up effect after showing
+                nameModal.querySelector('div').classList.remove('scale-95');
+            }, 10);
+        }
+
+        // Hide the custom modal
+        function hideNameModal() {
+            nameModal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => { // Remove from display flow after scale-down
+                nameModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Event listener to open modal
+        changeNameButton.addEventListener('click', showNameModal);
+
+        // Event listener for modal form submission
+        nameForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newName = modalNameInput.value;
+            if (newName && newName.trim()) {
+                saveName(newName); 
+            }
+            hideNameModal();
+        });
+
+        // Event listener for modal cancel button
+        cancelNameChangeButton.addEventListener('click', hideNameModal);
+
+
+        // --- Diagnostic Function ---
+        function runDiagnostic() {
+            if (auth && auth.currentUser) {
+                const user = auth.currentUser;
+                console.groupCollapsed("⭐ Diagnostic Check Results ⭐");
+                console.log("UserID:", user.uid);
+                console.log("Display Name:", userName);
+                console.log("Is Authenticated Ready:", isAuthReady);
+                console.log("Authentication Type:", user.isAnonymous ? "Anonymous User (OK for Shared Access)" : "Token Verified (OK)");
+                console.log("Goal Collection Path:", `artifacts/${appId}/public/data/sharedGoals`);
+                console.warn("If the goals list is empty or shows errors, check that the Firestore Security Rules allow read/write access to this path for anonymous users.");
+                console.groupEnd();
+                
+                // Using a custom alert replacement since window.alert is forbidden
+                const diagnosticMessage = `Diagnostic Check Complete.\nDisplay Name: ${userName}\nUserID: ${user.uid.slice(0, 12)}...\nStatus: Ready. (Check console for path info)`;
+                
+                // Simple custom modal replacement (since we can't use window.alert)
+                const modal = document.createElement('div');
+                modal.className = "fixed inset-0 bg-black/70 flex justify-center items-center z-50";
+                modal.innerHTML = `
+                    <div class="bg-purple-900 border border-yellow-400 p-6 rounded-lg shadow-2xl text-white max-w-sm">
+                        <h3 class="text-xl font-bold mb-3 text-yellow-400">Diagnostic Check</h3>
+                        <pre class="text-sm bg-purple-950 p-3 rounded overflow-auto whitespace-pre-wrap">${diagnosticMessage}</pre>
+                        <button onclick="this.closest('.fixed').remove()" class="mt-4 w-full bg-yellow-400 text-purple-900 font-bold py-2 rounded transition-colors hover:bg-yellow-500">
+                            Close
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+            } else {
+                 console.error("Diagnostic Check Failed: Authentication not established.");
+                 showError("Diagnostic Check Failed: Authentication not established. The app is stuck in the loader state.");
+            }
+        }
+        diagnosticButton.addEventListener('click', runDiagnostic);
+
+        // --- 3. ANIMATION LOGIC (Synced Waves) ---
+        function setupCanvasAnimation() {
+            const canvas = $('syncedWavesCanvas');
+            const ctx = canvas.getContext('2d');
+            let animationFrameId;
+            let time = 0;
+
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            const drawWave = (yOffset, color, speed, amplitude, frequency) => {
+                ctx.beginPath();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = color;
+
+                for (let x = 0; x < canvas.width; x++) {
+                    const y = Math.sin(x * frequency + time * speed) * amplitude 
+                            + Math.sin(x * frequency * 0.5 + time * speed * 0.5) * (amplitude * 0.5)
+                            + yOffset;
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            };
+
+            const particles = Array.from({ length: 200 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 0.5,
+                speedX: Math.random() * 0.2 - 0.1,
+                speedY: Math.random() * 0.5 + 0.1,
+                color: Math.random() > 0.5 ? 'rgba(255, 215, 0, 0.4)' : 'rgba(201, 139, 153, 0.4)'
+            }));
+
+            const animate = () => {
+                ctx.fillStyle = 'rgba(51, 0, 51, 0.2)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                time += 0.01;
+
+                particles.forEach(p => {
+                    p.y -= p.speedY;
+                    p.x += p.speedX + Math.sin(time * 0.5 + p.y * 0.01) * 0.1;
+                    
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                drawWave(canvas.height / 2, 'rgba(201, 139, 153, 0.8)', 1.2, 50, 0.005);
+                drawWave(canvas.height / 2, 'rgba(255, 255, 255, 0.7)', 0.9, 60, 0.004);
+                drawWave(canvas.height / 2, 'rgba(255, 215, 0, 0.4)', 1.1, 75, 0.0035);
+
+                animationFrameId = requestAnimationFrame(animate);
+            };
+
+            animate();
+            return () => cancelAnimationFrame(animationFrameId);
+        }
+
+        // --- 4. FIREBASE AUTH & INIT (Maximum Resilience) ---
+        async function initializeAppAndAuth() {
+            try {
+                // Set debug logging for deeper insights into Firebase auth process
+                setLogLevel('debug'); 
+                
+                console.log("1. Starting Firebase Initialization...");
+                console.log("   Using App ID:", appId);
+                console.log("   Using Config:", firebaseConfig.projectId ? firebaseConfig.projectId : 'DEFAULT (PLACEHOLDER)');
+                
+                // Initialize Firebase App instance
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                console.log("2. Attempting Sign-In...");
+                let signedIn = false;
+                if (initialAuthToken) {
+                    try {
+                        console.log("   Attempting Custom Token Sign-in...");
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        signedIn = true;
+                        console.log("   Custom Token Sign-in Succeeded.");
+                    } catch (e) {
+                        console.error("   Custom token sign-in failed. Error:", e);
+                    }
+                }
+
+                if (!signedIn) {
+                    try {
+                        console.log("   Attempting Anonymous Sign-in...");
+                        await signInAnonymously(auth);
+                        signedIn = true;
+                        console.log("   Anonymous Sign-in Succeeded.");
+                    } catch (e) {
+                        console.error("   Anonymous sign-in failed. Error:", e);
+                    }
+                }
+                
+                if (!signedIn) {
+                     showAuthError("Neither custom token nor anonymous sign-in could establish a session. Check your `LOCAL_FIREBASE_CONFIG` settings and ensure Anonymous Authentication is enabled.");
+                     return;
+                }
+
+                const unsubscribe = onAuthStateChanged(auth, (user) => {
+                    unsubscribe(); 
+                    if (user) {
+                        userId = user.uid;
+                        // 1. Set display name (priority: localStorage > sliced UID)
+                        const defaultName = userId.slice(0, 4);
+                        userName = getSavedName(defaultName); 
+                        
+                        isAuthReady = true;
+                        updateHeaderDisplay();
+                        anchorButton.disabled = false;
+                        startRealtimeSync(); 
+                        console.log("3. Authentication Complete. User ID:", userId);
+                    } else {
+                        showAuthError("Cannot establish user session after sign-in attempt. User object is null. Check network or configuration.");
+                    }
+                    loader.classList.add('hidden');
+                });
+
+            } catch (err) {
+                console.error("Initialization error:", err);
+                showAuthError(`Failed to initialize Firebase services. Check the provided configuration: ${err.message}`);
+            }
+        }
+
+        // --- 5. FOCUS HANDLERS (Shared Focus Beam) ---
+        
+        /**
+         * Core function to update the user's focus state in the database.
+         * This function should be called directly when an immediate update is needed (e.g., onblur, name change).
+         */
+        async function setFocusStateInternal(newFocusId, retryCount = 0) {
+            if (!db || !userId || !isAuthReady) return;
+            const focusRef = doc(db, `artifacts/${appId}/public/data/focus_state`, userId); 
+            
+            try {
+                await setDoc(focusRef, {
+                    userId: userId,
+                    userName: userName, // Uses the user's selected name (FIXED)
+                    focusedId: newFocusId,
+                    timestamp: Date.now(),
+                }, { merge: true });
+            } catch (err) {
+                if (retryCount < 3) {
+                    const delay = Math.pow(2, retryCount) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    await setFocusStateInternal(newFocusId, retryCount + 1);
+                } else {
+                    console.error("Failed to set focus after multiple retries:", err);
+                }
+            }
+        }
+
+        /**
+         * Debounced wrapper for external calls (onmouseenter, onfocus). 
+         * This prevents rapid writes from quick mouse movements (FIXED THE BOUNCING).
+         */
+        window.setFocusStateDebounced = debounce(setFocusStateInternal, 300);
+
+        function handleFocusUpdate(snapshot) {
+            focusStates = {};
+            let isPartnerTyping = false;
+            let partnerName = '';
+            
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                if (data.userId !== userId) {
+                    focusStates[data.userId] = data;
+                    if (data.focusedId === 'input') {
+                        isPartnerTyping = true;
+                        partnerName = data.userName;
+                    }
+                }
+            });
+
+            if (isPartnerTyping) {
+                focusIndicator.classList.remove('hidden');
+                focusIndicator.classList.add('flex');
+                focusIndicatorText.textContent = `${partnerName} is crafting a new goal...`;
+            } else {
+                focusIndicator.classList.add('hidden');
+                focusIndicator.classList.remove('flex');
+            }
+
+            renderGoals(); 
+        }
+
+        // --- 6. GOAL CRUD HANDLERS (Gravity Field) ---
+        goalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newGoalText = newGoalInput.value.trim();
+            if (!newGoalText || !db || !isAuthReady) {
+                 showError("Cannot anchor goal: Authentication is not ready.");
+                 return;
+            }
+            
+            anchorButton.classList.add('animate-flash-anchor');
+            anchorButton.disabled = true;
+            setFocusStateInternal(null); // Clear focus immediately (non-debounced)
+
+            try {
+                await addDoc(collection(db, `artifacts/${appId}/public/data/sharedGoals`), {
+                    text: newGoalText,
+                    completed: false,
+                    createdAt: Date.now(),
+                    userId: userId,
+                    userName: userName, // Uses the user's selected name
+                    boosts: 0 
+                });
+                newGoalInput.value = '';
+                clearError();
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showAuthError("Could not anchor goal to reality. Check security rules.");
+            } finally {
+                setTimeout(() => {
+                    anchorButton.classList.remove('animate-flash-anchor');
+                    anchorButton.disabled = false;
+                }, 500); 
+            }
+        });
+
+        async function handleToggleGoal(id, completed) {
+            if (!db || !isAuthReady) return;
+            if (!completed) {
+                completedGoalId = id;
+                setTimeout(() => completedGoalId = null, 800);
+            }
+            await updateDoc(doc(db, `artifacts/${appId}/public/data/sharedGoals`, id), { 
+                completed: !completed, 
+                completedAt: !completed ? Date.now() : null 
+            }).catch(err => showError("Failed to update goal. Check security rules."));
+        }
+
+        async function handleBoostGoal(id, currentBoosts) {
+            if (!db || !isAuthReady) return;
+            await updateDoc(doc(db, `artifacts/${appId}/public/data/sharedGoals`, id), { 
+                boosts: (currentBoosts || 0) + 1 
+            }).catch(err => showError("Failed to boost goal. Check security rules."));
+        }
+
+        async function handleDeleteGoal(id) {
+            if (!db || !isAuthReady) return;
+            await deleteDoc(doc(db, `artifacts/${appId}/public/data/sharedGoals`, id)).catch(err => showError("Failed to delete goal. Check security rules."));
+        }
+
+        // --- 7. RENDERING LOGIC ---
+
+        function renderGoalItem(goal, index) {
+            const creatorIsCurrentUser = goal.userId === userId;
+            const isRecentlyAdded = goal.id === lastAddedGoalId;
+            const isRecentlyCompleted = goal.id === completedGoalId;
+            
+            const isPartnerFocused = Object.values(focusStates).some(state => state.focusedId === goal.id);
+            const partnerFocusName = isPartnerFocused ? Object.values(focusStates).find(state => state.focusedId === goal.id).userName : '';
+
+            const boostLevel = goal.boosts || 0;
+            const boostColor = boostLevel > 0 
+                ? `border-[#C98B99] shadow-[0_0_${Math.min(20, boostLevel * 2)}px_rgba(201,139,153,0.3)]` 
+                : 'border-[#FFD700]';
+
+            const statusClasses = goal.completed 
+                ? 'bg-black/40 border-l-4 border-gray-600 opacity-70'
+                : `bg-white/5 border-l-4 ${boostColor} hover:bg-white/10 hover:shadow-lg`;
+
+            const pulseClass = isRecentlyCompleted 
+                ? 'animate-pulse-complete shadow-[0_0_20px_#FFD700] border-[#FFD700]' 
+                : '';
+            const addedClass = isRecentlyAdded
+                ? 'animate-pulse-add shadow-[0_0_20px_#C98B99] border-[#C98B99]'
+                : '';
+
+            const item = document.createElement('div');
+            item.className = `group flex items-start p-5 rounded-xl transition-all duration-300 transform hover:scale-[1.01] relative ${statusClasses} ${pulseClass} ${addedClass} item-enter`;
+            item.style.animationDelay = `${index * 0.1}s`;
+            item.setAttribute('data-id', goal.id);
+            
+            // Use debounced set on enter (FIXED THE BOUNCING)
+            item.onmouseenter = () => window.setFocusStateDebounced(goal.id); 
+            // Use the immediate clear on leave (FIXED THE BOUNCING)
+            item.onmouseleave = () => setFocusStateInternal(null); 
+
+            item.innerHTML = `
+                <!-- Checkbox -->
+                <input type="checkbox" ${goal.completed ? 'checked' : ''}
+                    class="mt-1 w-6 h-6 appearance-none border border-gray-400 rounded cursor-pointer transition-all duration-200 
+                            checked:bg-[#FFD700] checked:border-[#FFD700] checked:shadow-[0_0_10px_rgba(255,215,0,0.6)]
+                            focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] focus:ring-offset-[#330033]"
+                    ${goal.completed ? 'disabled' : ''}
+                />
+                
+                <div class="flex-1 ml-5">
+                    <!-- Text -->
+                    <p class="text-lg ${goal.completed ? 'line-through text-gray-500' : 'text-white'}" title="${goal.text}">${goal.text}</p>
+                    
+                    <div class="mt-1 flex items-center text-xs text-gray-400">
+                        <!-- Attribution (Uses correct userName from the goal data) -->
+                        <span>${goal.completed ? `Completed by ${goal.userName}` : `Added by ${goal.userName}`}</span>
+                        
+                        <!-- Gravity Boost Indicator -->
+                        ${boostLevel > 0 ? `
+                            <span class="ml-3 px-2 py-0.5 rounded-full bg-[#C98B99]/30 text-[#C98B99] flex items-center">
+                                <!-- Boost Icon SVG -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                                </svg>
+                                Boost: ${boostLevel}
+                            </span>
+                        ` : ''}
+
+                        <!-- Focus Beam Indicator -->
+                        ${isPartnerFocused && !goal.completed ? `
+                            <span class="ml-3 px-2 py-0.5 rounded-full bg-[#FFD700]/30 text-[#FFD700] flex items-center animate-pulse">
+                                <!-- Focus Beam SVG -->
+                                <svg class="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                                </svg>
+                                ${partnerFocusName} Viewing...
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center space-y-2">
+                    <!-- Priority Boost Button -->
+                    ${!goal.completed ? `
+                        <button class="boost-btn text-gray-400 hover:text-[#C98B99] p-2 transition-all transform hover:scale-125 focus:outline-none" title="Gravity Boost: Increase Priority">
+                            <!-- Boost Icon SVG -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                            </svg>
+                        </button>
+                    ` : '<div class="w-9 h-9"></div>'}
+                    
+                    <!-- Delete Button -->
+                    ${(creatorIsCurrentUser || !goal.userId) ? `
+                        <button class="delete-btn opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 p-2 transition-all transform hover:scale-125 focus:outline-none" title="Delete Goal">
+                            ✕
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Attach event listeners dynamically
+            item.querySelector('input[type="checkbox"]').addEventListener('change', () => handleToggleGoal(goal.id, goal.completed));
+            
+            const boostButton = item.querySelector('.boost-btn');
+            if (boostButton) {
+                boostButton.addEventListener('click', () => handleBoostGoal(goal.id, goal.boosts));
+            }
+            
+            const deleteButton = item.querySelector('.delete-btn');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', () => handleDeleteGoal(goal.id));
+            }
+
+            return item;
+        }
+
+
+        function renderGoals() {
+            goalContainer.innerHTML = '';
+            
+            // Client-side sort: Primary by boosts DESC, Secondary by creation time DESC
+            const sortedGoals = [...goals].sort((a, b) => {
+                if (b.boosts !== a.boosts) {
+                    return b.boosts - a.boosts; 
+                }
+                return (b.createdAt || 0) - (a.createdAt || 0); 
+            });
+
+            if (sortedGoals.length === 0) {
+                 goalContainer.innerHTML = `
+                    <div class="text-center py-10 opacity-60">
+                        <p class="text-lg">The canvas is empty.</p>
+                        <p class="text-sm">Start painting your future together.</p>
+                    </div>`;
+            } else {
+                sortedGoals.forEach((goal, index) => {
+                    goalContainer.appendChild(renderGoalItem(goal, index));
+                });
+            }
+            goalCount.textContent = sortedGoals.length;
+        }
+
+        // --- 8. REALTIME SYNC START ---
+        function startRealtimeSync() {
+            if (!db || !isAuthReady) {
+                console.warn("Attempted to start sync before Auth was ready.");
+                return;
+            }
+            
+            // Goal Sync 
+            // We fetch everything and sort client-side to avoid complex index requirements.
+            const goalsQ = collection(db, `artifacts/${appId}/public/data/sharedGoals`); 
+            
+            onSnapshot(goalsQ, (snapshot) => {
+                clearError();
+                let newGoals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), boosts: doc.data().boosts || 0 }));
+                
+                if (goals.length > 0 && newGoals.length > goals.length) {
+                    const newGoal = newGoals.find(ng => !goals.some(g => g.id === ng.id));
+                    if (newGoal) lastAddedGoalId = newGoal.id;
+                    setTimeout(() => lastAddedGoalId = null, 1000); 
+                }
+
+                goals = newGoals; 
+                renderGoals(); 
+            }, (err) => {
+                console.error("Firestore Goal Sync Error (Likely Security Rules Issue):", err);
+                showAuthError("Sync interrupted. Could not load goals from reality feed. Please check Firebase Security Rules and ensure read/write access is public or for signed-in users.");
+            });
+
+            // Focus State Sync
+            const focusQ = collection(db, `artifacts/${appId}/public/data/focus_state`);
+            onSnapshot(focusQ, handleFocusUpdate, (err) => {
+                console.error("Firestore Focus Sync Error:", err);
+            });
+        }
+        
+        // --- 9. INITIALIZATION ---
+        window.onload = function () {
+            initializeAppAndAuth();
+            setupCanvasAnimation();
+        }
+
+    </script>
+</body>
+</html>
